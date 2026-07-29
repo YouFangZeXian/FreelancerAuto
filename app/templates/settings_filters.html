@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}筛选规则 · FreelancerAuto{% endblock %}
+{% block page_title %}筛选规则{% endblock %}
+{% block content %}
+<section class="settings-intro"><h2>AI 分析前的低成本筛选</h2><p>每行填写一项。评分未知的雇主会保留供人工审核；已知评分低于阈值的项目会被筛除。</p></section>
+<form method="post" action="/settings/filters" class="settings-form">
+  <div class="settings-group"><h3>关键词</h3><div class="form-grid">
+    <label class="field"><span>包含关键词</span><textarea name="include_keywords" rows="10">{{ config.include_keywords|join('\n') }}</textarea><small>列表非空时，项目至少需要匹配一个关键词。</small></label>
+    <label class="field"><span>排除关键词</span><textarea name="exclude_keywords" rows="10">{{ config.exclude_keywords|join('\n') }}</textarea><small>匹配任意一项时，会在调用 AI 前筛除该项目。</small></label>
+  </div></div>
+  <div class="settings-group"><h3>高价值关键词加分</h3><div class="form-grid">
+    <label class="field"><span>高价值关键词</span><textarea name="priority_keywords" rows="10">{{ config.priority_keywords|join('\n') }}</textarea><small>命中任意一项后，AI 评分会提高到设定分数；AI 建议跳过的项目不会被强行加分。</small></label>
+    <label class="field"><span>评分保底</span><input type="number" min="0" max="100" name="priority_score_floor" value="{{ config.priority_score_floor }}" required><small>默认 90。原本评分高于此值时不会降低。</small></label>
+  </div></div>
+  <div class="settings-group"><h3>预算与可信度</h3><div class="form-grid form-grid-3">
+    <label class="field"><span>最低预算（美元）</span><input type="number" min="0" step="0.01" name="min_budget_usd" value="{{ config.min_budget_usd }}" required></label>
+    <label class="field"><span>最高预算（美元）</span><input type="number" min="0" step="0.01" name="max_budget_usd" value="{{ config.max_budget_usd }}" required></label>
+    <label class="field"><span>现有投标数上限</span><input type="number" min="0" name="max_existing_bids" value="{{ config.max_existing_bids }}" required></label>
+    <label class="field"><span>雇主最低评分</span><input type="number" min="0" max="5" step="0.1" name="min_employer_rating" value="{{ config.min_employer_rating }}" required></label>
+    <label class="check-field"><input type="checkbox" name="require_payment_verified" value="true" {% if config.require_payment_verified %}checked{% endif %}><span>要求雇主已验证付款方式</span></label>
+  </div></div>
+  <div class="settings-group"><h3>项目类型</h3><div class="check-row"><label class="check-field"><input type="checkbox" name="allowed_project_types" value="fixed" {% if 'fixed' in config.allowed_project_types %}checked{% endif %}><span>固定价格</span></label><label class="check-field"><input type="checkbox" name="allowed_project_types" value="hourly" {% if 'hourly' in config.allowed_project_types %}checked{% endif %}><span>按小时</span></label></div></div>
+  <div class="form-actions"><button class="button button-primary"><i data-lucide="save"></i>保存筛选规则</button></div>
+</form>
+{% endblock %}

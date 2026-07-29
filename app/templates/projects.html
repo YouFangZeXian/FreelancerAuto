@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}项目列表 · FreelancerAuto{% endblock %}
+{% block page_title %}项目队列{% endblock %}
+{% block content %}
+<section class="metric-grid" aria-label="项目概览">
+  <div><span>已发现</span><strong>{{ stats.total }}</strong></div>
+  <div><span>待分析</span><strong>{{ stats.pending }}</strong></div>
+  <div><span>待审核</span><strong>{{ stats.review }}</strong></div>
+  <div><span>已提交</span><strong>{{ stats.submitted }}</strong></div>
+</section>
+
+<section class="strategy-panel" aria-label="运营模式">
+  <div class="strategy-copy">
+    <div class="strategy-kicker">当前策略</div>
+    <h2>{{ strategy.label }}</h2>
+    <p>{{ strategy.description }}</p>
+    {% if strategy.id == 'starter' %}
+    <p class="strategy-progress">破零进度：{{ starter_progress.reviews }}/{{ starter_progress.review_target }} 个五星评价 · {{ starter_progress.completed_projects }}/{{ starter_progress.completed_target }} 个完成项目</p>
+    {% if starter_progress.should_suggest_normal_mode %}
+    <p class="strategy-alert"><i data-lucide="badge-check"></i>{{ starter_progress.message }}</p>
+    {% else %}
+    <small>{{ starter_progress.message }}</small>
+    {% endif %}
+    {% endif %}
+  </div>
+  <form method="post" action="/settings/strategy" class="strategy-form">
+    <label class="field"><span>运营模式</span><select name="operating_mode">
+      {% for value, mode_meta in operating_modes.items() %}
+      <option value="{{ value }}" {% if strategy.id == value %}selected{% endif %}>{{ mode_meta.label }}</option>
+      {% endfor %}
+    </select></label>
+    <label class="field"><span>五星评价数（手动记录）</span><input type="number" name="starter_review_count" min="0" value="{{ starter_progress.reviews }}"></label>
+    <label class="field"><span>完成项目数（手动记录）</span><input type="number" name="starter_completed_projects" min="0" value="{{ starter_progress.completed_projects }}"></label>
+    <button class="button button-primary"><i data-lucide="save"></i>保存策略</button>
+  </form>
+</section>
+
+<section class="command-bar">
+  <div>
+    <h2>监控与审核</h2>
+    <p>每轮抓取最多 300 个未覆盖项目，全部通过初筛的项目都会自动进入 AI 分析和评分；只批准你确认要发送的投标草稿。</p>
+  </div>
+  <div class="button-row">
+    <form method="post" action="/actions/fetch"><button class="button button-secondary"><i data-lucide="download"></i>抓取并分析</button></form>
+    <form method="post" action="/actions/analyze"><button class="button button-secondary"><i data-lucide="sparkles"></i>批量分析</button></form>
+    <form method="post" action="/actions/cycle"><button class="button button-primary"><i data-lucide="refresh-cw"></i>运行完整周期</button></form>
+  </div>
+</section>
+
+<form class="filter-panel" method="get" action="/projects" id="project-filters">
+  <label class="field field-wide"><span>搜索</span><input type="search" name="q" value="{{ filters.q }}" placeholder="搜索标题或描述"></label>
+  <label class="field"><span>状态</span><select name="status">
+    <option value="">全部</option>
+    {% for value in ['filtered_out','pending_analysis','analyzed','notified','approved','rejected','submitted','submission_failed','manual_submission_required'] %}
+    <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ status_label(value) }}</option>
+    {% endfor %}
+  </select></label>
+  <label class="field"><span>AI 建议</span><select name="recommendation">
+    <option value="">全部</option>
+    {% for value in ['bid','review','skip'] %}<option value="{{ value }}" {% if filters.recommendation == value %}selected{% endif %}>{{ recommendation_label(value) }}</option>{% endfor %}
+  </select></label>
+  <label class="field"><span>最低评分</span><input type="number" name="min_score" min="0" max="100" value="{{ filters.min_score if filters.min_score is not none else '' }}"></label>
+  <label class="field"><span>最低预算（美元）</span><input type="number" name="budget_min" min="0" step="1" value="{{ filters.budget_min if filters.budget_min is not none else '' }}"></label>
+  <label class="field"><span>已通知</span><select name="notified"><option value="">不限</option><option value="yes" {% if filters.notified == 'yes' %}selected{% endif %}>是</option><option value="no" {% if filters.notified == 'no' %}selected{% endif %}>否</option></select></label>
+  <label class="field"><span>已审核</span><select name="reviewed"><option value="">不限</option><option value="yes" {% if filters.reviewed == 'yes' %}selected{% endif %}>是</option><option value="no" {% if filters.reviewed == 'no' %}selected{% endif %}>否</option></select></label>
+  <label class="field"><span>已提交</span><select name="submitted"><option value="">不限</option><option value="yes" {% if filters.submitted == 'yes' %}selected{% endif %}>是</option><option value="no" {% if filters.submitted == 'no' %}selected{% endif %}>否</option></select></label>
+  <button class="icon-button" title="应用筛选条件" aria-label="应用筛选条件"><i data-lucide="search"></i></button>
+</form>
+
+<section class="data-section">
+  <div class="section-heading"><h2>项目</h2><span>显示 {{ projects|length }} 个</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>项目</th><th>预算</th><th>评分</th><th>破零适配</th><th>雇主</th><th>投标数</th><th>状态</th><th></th></tr></thead>
+      <tbody>
+      {% for project in projects %}
+      <tr>
+        <td class="project-cell">
+          <a href="/projects/{{ project.freelancer_project_id }}">{{ project.title }}</a>
+          <small>{{ project_type_label(project.project_type) }} · {{ project.skills[:3]|join(', ') or '暂无技能信息' }}</small>
+        </td>
+        <td><strong>{{ project.budget_min or '—' }}–{{ project.budget_max or '—' }}</strong><small>{{ project.currency }}</small></td>
+        <td>{% if project.analysis and project.status != 'filtered_out' %}<span class="score score-{{ project.analysis.recommendation }}">{{ project.analysis.score }}</span><small>{{ recommendation_label(project.analysis.recommendation) }}</small>{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td>{% if project.analysis and project.status != 'filtered_out' %}{% set starter_score = project.analysis.data.get('strategy', {}).get('starter_score', project.analysis.data.get('starter_score')) %}{% if starter_score is not none %}<strong>{{ '%.1f'|format(starter_score) }}/10</strong><small>五星潜力</small>{% else %}<span class="muted">待重新分析</span>{% endif %}{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td><strong>{{ '%.1f'|format(project.employer_rating) if project.employer_rating is not none else '未知' }}</strong><small>{{ '付款已验证' if project.payment_verified else '未验证或未知' }}</small></td>
+        <td>{{ project.bid_count }}</td>
+        <td><span class="status status-{{ project.status }}">{{ status_label(project.status) }}</span></td>
+        <td><a class="icon-button icon-button-small" href="/projects/{{ project.freelancer_project_id }}" title="审核项目" aria-label="审核项目：{{ project.title }}"><i data-lucide="arrow-up-right"></i></a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" class="empty-state"><i data-lucide="inbox"></i><strong>没有符合当前筛选条件的项目。</strong><span>请抓取新项目或调整筛选条件。</span></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById('project-filters').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var params = new URLSearchParams();
+    new FormData(this).forEach(function (value, key) {
+      if (String(value).trim() !== '') params.append(key, value);
+    });
+    window.location.assign(this.action + (params.size ? '?' + params.toString() : ''));
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}服务集成 · FreelancerAuto{% endblock %}
+{% block page_title %}服务集成{% endblock %}
+{% block content %}
+<section class="integration-strip" aria-label="集成状态">
+  <div><span class="health {{ 'health-ok' if status.freelancer else 'health-off' }}"></span><strong>Freelancer</strong><small>{{ mode_label(status.freelancer_mode) }}</small></div>
+  <div><span class="health {{ 'health-ok' if status.ai else 'health-off' }}"></span><strong>AI 服务</strong><small>{{ mode_label(status.ai_mode) }}</small></div>
+  <div><span class="health {{ 'health-ok' if status.ntfy else 'health-off' }}"></span><strong>ntfy</strong><small>{{ '已配置' if status.ntfy else '未配置' }}</small></div>
+  <div><span class="health {{ 'health-warn' if status.bid_enabled else 'health-off' }}"></span><strong>真实投标</strong><small>{{ '已启用' if status.bid_enabled else '默认禁用' }}</small></div>
+</section>
+
+<section class="settings-form">
+  <div class="settings-group"><div class="section-heading"><div><h3>连接测试</h3><p>测试会使用当前环境变量和已保存的非敏感覆盖设置。</p></div></div><div class="button-row">
+    <form method="post" action="/actions/test/freelancer"><button class="button button-secondary"><i data-lucide="radio"></i>测试 Freelancer</button></form>
+    <form method="post" action="/actions/test/ai"><button class="button button-secondary"><i data-lucide="brain-circuit"></i>测试 AI</button></form>
+    <form method="post" action="/actions/test/ntfy"><button class="button button-secondary"><i data-lucide="bell-ring"></i>测试 ntfy</button></form>
+  </div></div>
+</section>
+
+<form method="post" action="/settings/integrations" class="settings-form">
+  <div class="settings-group"><h3>AI 与调度器</h3><p class="helper">API 密钥和 Freelancer 令牌仅从环境变量读取，这些字段不包含任何密钥。</p><div class="form-grid form-grid-3">
+    <label class="field field-wide"><span>AI 基础 URL</span><input type="url" name="ai_base_url" value="{{ runtime.get('ai_base_url', effective.ai_base_url) }}" placeholder="https://provider.example/v1"></label>
+    <label class="field"><span>AI 模型</span><input name="ai_model" value="{{ runtime.get('ai_model', effective.ai_model) }}" placeholder="model-name"></label>
+    <label class="field"><span>AI 超时秒数</span><input type="number" min="5" max="600" name="ai_timeout_seconds" value="{{ runtime.get('ai_timeout_seconds', effective.ai_timeout_seconds) }}" required></label>
+    <label class="field"><span>通知评分阈值</span><input type="number" min="0" max="100" name="notify_score_threshold" value="{{ runtime.get('notify_score_threshold', effective.notify_score_threshold) }}" required></label>
+    <label class="field"><span>周期运行间隔（分钟）</span><input type="number" min="1" max="1440" name="scheduler_interval_minutes" value="{{ runtime.get('scheduler_interval_minutes', effective.scheduler_interval_minutes) }}" required></label>
+    <label class="field"><span>每轮抓取项目数</span><input type="number" min="1" max="1000" name="freelancer_fetch_limit" value="{{ runtime.get('freelancer_fetch_limit', effective.freelancer_fetch_limit) }}" required></label>
+    <label class="field"><span>每轮 AI 分析上限</span><input type="number" min="1" max="1000" name="analysis_batch_limit" value="{{ runtime.get('analysis_batch_limit', effective.analysis_batch_limit) }}" required></label>
+  </div></div>
+  <div class="settings-group security-note"><i data-lucide="shield-check"></i><div><h3>提交安全</h3><p>真实投标需要正式令牌、用户批准的草稿、第二次文字确认、仍开放的项目、有效报价，以及可用的每小时和每日限额。系统没有无人值守批量投标开关。</p></div></div>
+  <div class="form-actions"><button class="button button-primary"><i data-lucide="save"></i>保存运行设置</button></div>
+</form>
+{% endblock %}

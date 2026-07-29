@@ -1,0 +1,18 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.coverage
+htmlcov
+data
+# Do not bake an operator-specific capability and pricing profile into an
+# image layer. Docker Compose mounts the local config directory at runtime.
+config/profile.yaml
+tests
+docs
+*.md

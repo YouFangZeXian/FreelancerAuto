@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}{{ project.title }} · FreelancerAuto{% endblock %}
+{% block page_title %}项目审核{% endblock %}
+{% block content %}
+<div class="detail-header">
+  <div>
+    <a class="back-link" href="/projects"><i data-lucide="arrow-left"></i>返回项目列表</a>
+    <h2>{{ project.title }}</h2>
+    <div class="meta-line">
+      <span class="status status-{{ project.status }}">{{ status_label(project.status) }}</span>
+      <span>{{ project_type_label(project.project_type) }}</span><span>{{ project.bid_count }} 个投标</span><span>项目 ID {{ project.freelancer_project_id }}</span>
+    </div>
+  </div>
+  <a class="button button-secondary" href="{{ project.project_url }}" target="_blank" rel="noopener"><i data-lucide="external-link"></i>在 Freelancer 打开</a>
+</div>
+
+<div class="detail-layout">
+  <div class="detail-main">
+    <section class="content-section">
+      <div class="section-heading"><h3>项目简介</h3><span>{{ project.currency }} {{ project.budget_min or '—' }}–{{ project.budget_max or '—' }}</span></div>
+      <p class="long-copy">{{ project.description or 'API 未返回完整项目描述。' }}</p>
+      {% if project.status != 'filtered_out' %}
+      <div class="translation-copy">
+        <h4>中文翻译</h4>
+        {% if project.analysis and project.analysis.data.description_zh %}
+        <p class="long-copy">{{ project.analysis.data.description_zh }}</p>
+        {% else %}
+        <p class="muted">项目已通过初筛；完成 AI 分析后会自动显示完整中文翻译。</p>
+        {% endif %}
+      </div>
+      {% endif %}
+      <div class="tag-list">{% for skill in project.skills %}<span>{{ skill }}</span>{% endfor %}</div>
+    </section>
+
+    <section class="content-section">
+      <div class="section-heading">
+        <h3>AI 分析</h3>
+        <form method="post" action="/projects/{{ project.freelancer_project_id }}/analyze"><button class="button button-secondary button-small"><i data-lucide="sparkles"></i>{{ '重新分析并翻译' if project.analysis else '立即分析并翻译' }}</button><input type="hidden" name="force" value="{{ 'true' if project.analysis else 'false' }}"></form>
+      </div>
+      {% if project.analysis %}
+      <div class="analysis-lead">
+        <div class="score-large score-{{ project.analysis.recommendation }}">{{ project.analysis.score }}</div>
+        <div><strong>{{ recommendation_label(project.analysis.recommendation) }}</strong><p>{{ project.analysis.summary_zh }}</p></div>
+      </div>
+      {% if project.analysis.data.priority and project.analysis.data.priority.matched_keywords %}
+      <div class="tag-list"><span>高价值命中：{{ project.analysis.data.priority.matched_keywords|join('、') }}</span><span>评分保底 {{ project.analysis.data.priority.score_floor }} 分</span></div>
+      {% endif %}
+      <div class="analysis-grid">
+        <div><span>置信度</span><strong>{{ project.analysis.confidence }}%</strong></div>
+        <div><span>预估工时</span><strong>{{ project.analysis.data.estimated_hours_min }}–{{ project.analysis.data.estimated_hours_max }} 小时</strong></div>
+        <div><span>AI 辅助比例</span><strong>{{ project.analysis.data.ai_assistance_ratio }}%</strong></div>
+        <div><span>有效时薪</span>
+          {% if hourly_rate and hourly_rate.usd_amount is not none %}
+          <strong>${{ '%.2f'|format(hourly_rate.usd_amount) }} USD / 小时<br>¥{{ '%.2f'|format(hourly_rate.cny_amount) }} CNY / 小时</strong>
+          <small>{{ hourly_rate.native_amount }} {{ hourly_rate.native_currency }} / 小时；1 USD ≈ {{ '%.2f'|format(hourly_rate.usd_cny_rate) }} CNY（{{ hourly_rate.rate_source }}）</small>
+          {% else %}
+          <strong>{{ project.analysis.effective_hourly_rate }} {{ project.analysis.currency }}/小时</strong>
+          <small>暂缺该币种的 USD 汇率，无法折算。</small>
+          {% endif %}
+        </div>
+      </div>
+      <div class="review-potential">
+        <div class="review-potential-heading"><h4>五星评价潜力（破零参考）</h4><span>仅辅助排序，不会覆盖安全跳过判断</span></div>
+        {% set strategy_data = project.analysis.data.get('strategy', {}) %}
+        {% if strategy_data or 'starter_score' in project.analysis.data %}
+        <div class="review-potential-grid">
+          <div><span>交付清晰度</span><strong>{{ '%.1f'|format(project.analysis.data.get('delivery_clarity', 0)) }}/10</strong></div>
+          <div><span>客户靠谱程度</span><strong>{{ '%.1f'|format(project.analysis.data.get('client_reliability', 0)) }}/10</strong></div>
+          <div><span>修改风险（低更好）</span><strong>{{ '%.1f'|format(project.analysis.data.get('change_risk', 0)) }}/10</strong></div>
+          <div><span>五星评价概率</span><strong>{{ '%.1f'|format(project.analysis.data.get('five_star_probability', 0)) }}/10</strong></div>
+          <div><span>作品集适配</span><strong>{{ '%.1f'|format(project.analysis.data.get('portfolio_fit', 0)) }}/10</strong></div>
+          <div class="starter-score-card"><span>Starter Score</span><strong>{{ '%.1f'|format(strategy_data.get('starter_score', project.analysis.data.get('starter_score', 0))) }}/10</strong></div>
+        </div>
+        {% if strategy_data.get('mode_recommendation') %}
+        <p class="strategy-recommendation">{{ strategy_data.get('mode_recommendation') }}</p>
+        {% endif %}
+        {% if strategy_data.get('local_signals') %}
+        <div class="tag-list strategy-signals">{% for signal in strategy_data.get('local_signals') %}<span>{{ signal }}</span>{% endfor %}</div>
+        {% endif %}
+        {% else %}
+        <p class="strategy-recommendation">这是策略更新前的旧分析。不会自动重跑并消耗 AI；如需五星潜力评分，请手动点击“重新分析并翻译”。</p>
+        {% endif %}
+      </div>
+      <div class="split-lists">
+        <div><h4>风险</h4><ul>{% for item in project.analysis.data.risks %}<li>{{ item }}</li>{% else %}<li>暂无主要风险。</li>{% endfor %}</ul></div>
+        <div><h4>需要向客户确认的问题</h4><ul>{% for item in project.analysis.data.questions_for_client %}<li>{{ item }}</li>{% else %}<li>暂无待确认问题。</li>{% endfor %}</ul></div>
+      </div>
+      {% else %}<div class="empty-inline">该项目尚未进行 AI 分析。</div>{% endif %}
+    </section>
+
+    <section class="content-section">
+      <div class="section-heading"><h3>投标函与报价</h3><span>编辑后会撤销批准状态</span></div>
+      {% if project.draft %}
+      <form method="post" action="/projects/{{ project.freelancer_project_id }}/draft" class="stack-form">
+        <label class="field"><span>中文译文（仅供核对，不会提交给客户）</span>
+          {% if project.analysis and project.analysis.data.proposal_zh %}
+          <textarea rows="10" readonly>{{ project.analysis.data.proposal_zh }}</textarea>
+          <small>这是 AI 生成的英文 Proposal 中文译文。编辑下方英文后，请以英文内容为准。</small>
+          {% else %}
+          <textarea rows="4" readonly>该旧分析尚未生成中文译文。点击“重新分析并翻译”即可补齐。</textarea>
+          {% endif %}
+        </label>
+        <label class="field"><span>英文 Proposal</span><textarea name="proposal_en" rows="12" required>{{ project.draft.proposal_en }}</textarea></label>
+        <div class="form-grid">
+          <label class="field"><span>投标金额（{{ project.draft.currency }}）</span><input type="number" step="0.01" min="0" name="bid_amount" value="{{ project.draft.bid_amount }}" required></label>
+          <label class="field"><span>交付天数</span><input type="number" min="1" name="delivery_days" value="{{ project.draft.delivery_days }}" required></label>
+        </div>
+        <button class="button button-primary"><i data-lucide="save"></i>保存草稿</button>
+      </form>
+      {% else %}<div class="empty-inline">请先分析项目以生成投标草稿。</div>{% endif %}
+    </section>
+  </div>
+
+  <aside class="review-rail">
+    <section class="rail-section">
+      <h3>雇主信息</h3>
+      <dl><div><dt>评分</dt><dd>{{ project.employer_rating if project.employer_rating is not none else '未知' }}</dd></div><div><dt>付款验证</dt><dd>{{ '已验证' if project.payment_verified else '未验证或未知' }}</dd></div></dl>
+    </section>
+    <section class="rail-section">
+      <h3>审核决定</h3>
+      <p>批准草稿不会立即提交，真正投标前始终需要再次确认。</p>
+      <form method="post" action="/projects/{{ project.freelancer_project_id }}/approve"><button class="button button-primary button-full" {% if not project.draft %}disabled{% endif %}><i data-lucide="check"></i>批准草稿</button></form>
+      <form method="post" action="/projects/{{ project.freelancer_project_id }}/reject" class="stack-form compact"><textarea name="reason" rows="2" placeholder="可选：填写拒绝原因"></textarea><button class="button button-danger button-full"><i data-lucide="x"></i>拒绝项目</button></form>
+      <form method="post" action="/projects/{{ project.freelancer_project_id }}/manual"><button class="button button-secondary button-full"><i data-lucide="mouse-pointer-click"></i>标记为手动投标</button></form>
+    </section>
+    {% if project.status == 'approved' %}
+    <section class="rail-section rail-warning">
+      <h3>最终提交</h3>
+      <p>这是第二次确认。请输入 <strong>SUBMIT</strong>。真实提交还要求开启环境开关并配置有效令牌。</p>
+      <form method="post" action="/projects/{{ project.freelancer_project_id }}/submit" class="stack-form compact" data-confirm="确认现在将此投标提交到 Freelancer.com 吗？">
+        <label class="field"><span>确认文字</span><input name="confirmation" autocomplete="off" placeholder="SUBMIT" required></label>
+        <button class="button button-danger button-full"><i data-lucide="send"></i>提交投标</button>
+      </form>
+    </section>
+    {% endif %}
+    <section class="rail-section">
+      <h3>筛选结果</h3><p>{{ filter_reason_label(project.filter_reason) }}</p>
+    </section>
+  </aside>
+</div>
+{% endblock %}

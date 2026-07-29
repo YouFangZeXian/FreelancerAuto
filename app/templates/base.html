@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}FreelancerAuto 控制台{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/projects" aria-label="FreelancerAuto 项目控制台">
+        <span class="brand-mark">FA</span>
+        <span><strong>FreelancerAuto</strong><small>项目控制中心</small></span>
+      </a>
+      <nav class="nav-list" aria-label="主导航">
+        <a href="/projects" class="{{ 'is-active' if request.url.path == '/projects' else '' }}" {% if request.url.path == '/projects' %}aria-current="page"{% endif %}><i data-lucide="layout-dashboard"></i><span>项目列表</span></a>
+        <a href="/history/bids" class="{{ 'is-active' if request.url.path == '/history/bids' else '' }}" {% if request.url.path == '/history/bids' %}aria-current="page"{% endif %}><i data-lucide="history"></i><span>投标历史</span></a>
+        <a href="/logs" class="{{ 'is-active' if request.url.path == '/logs' else '' }}" {% if request.url.path == '/logs' %}aria-current="page"{% endif %}><i data-lucide="scroll-text"></i><span>审计日志</span></a>
+        <span class="nav-section">配置</span>
+        <a href="/settings/filters" class="{{ 'is-active' if request.url.path == '/settings/filters' else '' }}" {% if request.url.path == '/settings/filters' %}aria-current="page"{% endif %}><i data-lucide="list-filter"></i><span>筛选规则</span></a>
+        <a href="/settings/profile" class="{{ 'is-active' if request.url.path == '/settings/profile' else '' }}" {% if request.url.path == '/settings/profile' %}aria-current="page"{% endif %}><i data-lucide="circle-user-round"></i><span>能力画像</span></a>
+        <a href="/settings/integrations" class="{{ 'is-active' if request.url.path == '/settings/integrations' else '' }}" {% if request.url.path == '/settings/integrations' %}aria-current="page"{% endif %}><i data-lucide="plug-zap"></i><span>服务集成</span></a>
+      </nav>
+      <div class="sidebar-foot">
+        <span class="safety-dot"></span>
+        <div><strong>必须人工批准</strong><small>系统不提供无人值守批量投标。</small></div>
+      </div>
+    </aside>
+    <main class="main-content" id="main-content">
+      <header class="topbar glass-nav">
+        <div>
+          <p class="context-label">Freelancer 项目监控</p>
+          <h1>{% block page_title %}控制中心{% endblock %}</h1>
+        </div>
+        <a class="button button-secondary" href="/docs" target="_blank"><i data-lucide="book-open"></i>API 文档</a>
+      </header>
+      {% if request.query_params.get('message') %}
+      <div class="notice notice-{{ request.query_params.get('kind', 'success') }}" role="status">
+        <i data-lucide="{{ 'circle-alert' if request.query_params.get('kind') == 'error' else 'circle-check' }}"></i>
+        <span>{{ request.query_params.get('message') }}</span>
+      </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script>
+    if (window.lucide) window.lucide.createIcons();
+    document.querySelectorAll('[data-confirm]').forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!window.confirm(form.dataset.confirm)) event.preventDefault();
+      });
+    });
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,29 @@
+# Copy this file to config/profile.yaml and tailor it locally.
+# profile.yaml is intentionally excluded from Git and Docker build contexts.
+skills:
+  - Python
+  - FastAPI
+  - API integration
+  - Web automation
+  - Data collection and normalization
+  - Basic frontend development
+  - AI-assisted development
+preferences:
+  preferred_projects:
+    - Automation tools
+    - API integration
+    - Data collection
+    - AI feature integration
+    - Lightweight web systems
+    - Admin dashboards
+  avoid_projects:
+    - Extremely vague requirements
+    - Long-term onsite work
+    - Illegal or platform-policy-violating work
+    - Work without a reasonable acceptance standard
+pricing:
+  target_hourly_rate_usd: 20
+  minimum_effective_hourly_rate_usd: 10
+availability:
+  max_active_projects: 2
+  available_hours_per_week: 20

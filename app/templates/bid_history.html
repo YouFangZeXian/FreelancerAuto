@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}投标历史 · FreelancerAuto{% endblock %}
+{% block page_title %}投标历史{% endblock %}
+{% block content %}
+<section class="data-section">
+  <div class="section-heading"><h2>提交记录</h2><span>共 {{ submissions|length }} 条</span></div>
+  <div class="table-wrap"><table><thead><tr><th>时间</th><th>项目</th><th>状态</th><th>模式</th><th>外部投标 ID</th><th>错误信息</th></tr></thead><tbody>
+  {% for item in submissions %}<tr><td>{{ item.created_at }}</td><td><a href="/projects/{{ item.project.freelancer_project_id }}">{{ item.project.title }}</a></td><td><span class="status status-{{ item.status }}">{{ status_label(item.status) }}</span></td><td>{{ '试运行' if item.is_dry_run else '正式提交' }}</td><td>{{ item.external_bid_id or '—' }}</td><td class="error-text">{{ item.error_message or '—' }}</td></tr>
+  {% else %}<tr><td colspan="6" class="empty-state"><i data-lucide="history"></i><strong>暂无投标记录。</strong></td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

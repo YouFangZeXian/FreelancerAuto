@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}审计日志 · FreelancerAuto{% endblock %}
+{% block page_title %}审计日志{% endblock %}
+{% block content %}
+<section class="data-section"><div class="section-heading"><h2>最近事件</h2><span>最多显示 500 条</span></div><div class="table-wrap"><table><thead><tr><th>时间</th><th>事件</th><th>项目数据库 ID</th><th>操作方</th><th>详细数据</th></tr></thead><tbody>
+{% for item in logs %}<tr><td>{{ item.created_at }}</td><td><strong>{{ event_label(item.event_type) }}</strong></td><td>{{ item.project_id or '—' }}</td><td>{{ actor_label(item.actor) }}</td><td><code class="json-cell">{{ item.details|tojson }}</code></td></tr>{% else %}<tr><td colspan="5" class="empty-state"><i data-lucide="scroll-text"></i><strong>暂无审计事件。</strong></td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}

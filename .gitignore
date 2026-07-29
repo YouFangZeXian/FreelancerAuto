@@ -1,0 +1,17 @@
+# Local secrets and machine-specific configuration. Keep the checked-in
+# examples below so a fresh clone remains easy to configure.
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+data/*.db
+data/*.db-*
+# This is the operator's own pricing, availability and capability profile.
+# Commit config/profile.example.yaml instead.
+config/profile.yaml
+.DS_Store

@@ -1,0 +1,32 @@
+services:
+  web:
+    build: .
+    env_file:
+      - path: .env
+        required: false
+    command: python -m app.cli serve
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  worker:
+    build: .
+    env_file:
+      - path: .env
+        required: false
+    command: python -m app.cli worker
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy

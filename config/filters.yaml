@@ -1,0 +1,157 @@
+include_keywords:
+- ai
+- artificial intelligence
+- chatgpt
+- gpt
+- openai
+- claude
+- gemini
+- llm
+- agent
+- ai agent
+- prompt
+- rag
+- mcp
+- langchain
+- python
+- automation
+- script
+- bot
+- web scraping
+- scraping
+- crawler
+- selenium
+- playwright
+- beautifulsoup
+- requests
+- asyncio
+- api
+- api integration
+- rest api
+- graphql
+- webhook
+- oauth
+- json
+- javascript
+- typescript
+- react
+- nextjs
+- next.js
+- vue
+- nodejs
+- express
+- frontend
+- backend
+- full stack
+- fullstack
+- website
+- web app
+- dashboard
+- landing page
+- excel
+- csv
+- sql
+- mysql
+- postgresql
+- sqlite
+- data analysis
+- data processing
+- power bi
+- workflow
+- zapier
+- make
+- n8n
+- telegram bot
+- discord bot
+- slack bot
+- chrome extension
+- browser extension
+- email automation
+- docker
+- linux
+- ubuntu
+- nginx
+- github
+- github actions
+- cloudflare
+- vercel
+- firebase
+- supabase
+- aws
+- wordpress
+- woocommerce
+- shopify
+- php
+- laravel
+- figma
+- ui
+- ux
+- prototype
+- wireframe
+- logo
+- branding
+exclude_keywords:
+- academic cheating
+- exam
+- quiz
+- assignment
+- homework
+- coursework
+- take my exam
+- take my test
+- adult
+- porn
+- nsfw
+- escort
+- onlyfans
+- casino
+- betting
+- gambling
+- poker
+- captcha farm
+- 2captcha
+- anticaptcha
+- ddos
+- malware
+- ransomware
+- stealer
+- keylogger
+- hack facebook
+- hack instagram
+- hack whatsapp
+- hack gmail
+- spam bot
+- email spam
+- sms bombing
+- phishing
+priority_keywords:
+- openai
+- chatgpt
+- claude
+- gemini
+- agent
+- automation
+- python
+- playwright
+- selenium
+- api integration
+- telegram bot
+- discord bot
+- chrome extension
+- browser extension
+- cloudflare
+- saas
+- dashboard
+- workflow
+- ai
+- llm
+- mcp
+priority_score_floor: 90
+min_budget_usd: 15.0
+max_budget_usd: 2000.0
+max_existing_bids: 250
+min_employer_rating: 3.5
+require_payment_verified: false
+allowed_project_types:
+- fixed
+- hourly
